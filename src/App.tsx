@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from 'react';
-import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { useDarkMode } from './contexts/DarkModeContext';
@@ -46,6 +46,16 @@ const AuthLoader = () => (
     <div className="w-16 h-16 border-4 border-gold-600 border-t-transparent rounded-full animate-spin" />
   </div>
 );
+
+// Root layout with LoadingBar (must be inside router context)
+const RootLayout = () => {
+  return (
+    <>
+      <LoadingBar />
+      <Outlet />
+    </>
+  );
+};
 
 // Home redirect component
 const HomeRedirect = () => {
@@ -122,46 +132,49 @@ function AppContent() {
 
   // Create router with authentication
   const router = createBrowserRouter([
-    // Auth Routes (Public)
     {
-      path: '/auth',
+      element: <RootLayout />,
       children: [
+        // Auth Routes (Public)
         {
-          path: 'login',
-          element: (
-            <Suspense fallback={<AuthLoader />}>
-              <Login />
-            </Suspense>
-          ),
-        },
-        {
-          path: 'register',
-          element: (
-            <Suspense fallback={<AuthLoader />}>
-              <Register />
-            </Suspense>
-          ),
-        },
-        {
-          path: 'forgot-password',
-          element: (
-            <Suspense fallback={<AuthLoader />}>
-              <ForgotPassword />
-            </Suspense>
-          ),
-        },
-      ],
-    },
-
-    // Protected Routes
-    {
-      path: '/',
-      element: <ProtectedRoute />,
-      children: [
-        {
-          path: '',
-          element: <MainLayout />,
+          path: '/auth',
           children: [
+            {
+              path: 'login',
+              element: (
+                <Suspense fallback={<AuthLoader />}>
+                  <Login />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'register',
+              element: (
+                <Suspense fallback={<AuthLoader />}>
+                  <Register />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'forgot-password',
+              element: (
+                <Suspense fallback={<AuthLoader />}>
+                  <ForgotPassword />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+
+        // Protected Routes
+        {
+          path: '/',
+          element: <ProtectedRoute />,
+          children: [
+            {
+              path: '',
+              element: <MainLayout />,
+              children: [
             // Home Redirect
             {
               index: true,
@@ -262,10 +275,12 @@ function AppContent() {
       ],
     },
 
-    // 404 Redirect
-    {
-      path: '*',
-      element: <Navigate to="/auth/login" replace />,
+        // 404 Redirect
+        {
+          path: '*',
+          element: <Navigate to="/auth/login" replace />,
+        },
+      ],
     },
   ]);
 
@@ -283,7 +298,6 @@ function App() {
           richColors
           theme={isDarkMode ? 'dark' : 'light'}
         />
-        <LoadingBar />
         <AppContent />
       </div>
     </AuthProvider>
