@@ -1,58 +1,54 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @theme {
+  /* Enterprise Color Palette */
+  --color-navy-950: #020617;
+  --color-navy-900: #0F172A;
+  --color-navy-800: #1E293B;
+  --color-navy-700: #334155;
+  --color-navy-600: #475569;
+
+  --color-gold-600: #D97706;
+  --color-gold-500: #F59E0B;
+  --color-gold-400: #FBBF24;
+
+  /* Accent Colors (Minimal Use) */
   --color-kenya-red: #B91C1C;
   --color-kenya-green: #15803D;
-  --color-kenya-pink: #E91E63;
-  --color-navy-900: #0f172a;
-  --color-navy-800: #1e293b;
 
-  --animate-shimmer: shimmer 2s linear infinite;
-  --animate-float: float 3s ease-in-out infinite;
-  --animate-aurora: aurora 8s ease-in-out infinite;
-  --animate-rotate-gradient: rotate-gradient 8s linear infinite;
-  --animate-morph: morph 10s ease-in-out infinite;
-  --animate-pulse-glow: pulse-glow 2s ease-in-out infinite;
+  /* Simple Animations Only */
+  --animate-fade-in: fade-in 0.2s ease-out;
+  --animate-slide-up: slide-up 0.3s ease-out;
+  --animate-slide-down: slide-down 0.3s ease-out;
 }
 
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+/* Minimal Keyframes - Fast & Lightweight */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-@keyframes aurora {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.8; transform: scale(1.1); }
-}
-
-@keyframes rotate-gradient {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes morph {
-  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 0.5; filter: blur(20px); }
-  50% { opacity: 1; filter: blur(30px); }
-}
-
-@keyframes tribal-rotate {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-@keyframes tribal-pulse {
-  0%, 100% { opacity: 0.05; }
-  50% { opacity: 0.15; }
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @layer base {
@@ -62,36 +58,53 @@
   }
 
   body {
-    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans antialiased;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    @apply bg-white text-gray-900 antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    transition: background-color 0.15s ease;
     overflow-x: hidden;
   }
 
-  /* Custom Scrollbar */
+  /* Dark Mode - Clean Professional */
+  body.dark {
+    @apply bg-navy-950 text-gray-100;
+  }
+
+  /* Professional Scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-gray-200 dark:bg-gray-800;
+    @apply bg-gray-100;
+  }
+
+  body.dark ::-webkit-scrollbar-track {
+    @apply bg-navy-900;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-gray-400 dark:bg-gray-600 rounded-full;
-    background: linear-gradient(135deg, #E91E63, #B91C1C);
+    @apply bg-gray-400 rounded-lg;
+  }
+
+  body.dark ::-webkit-scrollbar-thumb {
+    @apply bg-navy-600;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-500 dark:bg-gray-500;
+    @apply bg-gray-500;
   }
 
-  /* Focus visible for accessibility */
+  body.dark ::-webkit-scrollbar-thumb:hover {
+    @apply bg-navy-500;
+  }
+
+  /* Focus Ring - Accessibility */
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-kenya-pink;
+    @apply outline-2 outline-offset-2 outline-gold-500 ring-2 ring-gold-500/20;
   }
 
-  /* Reduce motion for accessibility */
+  /* Reduced Motion */
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -104,300 +117,176 @@
 }
 
 @layer utilities {
-  /* Glassmorphism Variants */
-  .glass-card {
-    @apply bg-white/10 dark:bg-white/5 backdrop-blur-xl border border-white/10 dark:border-white/5;
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.1) inset,
-      0 4px 16px rgba(0, 0, 0, 0.1),
-      0 8px 32px rgba(0, 0, 0, 0.05);
+  /* Enterprise Card Styles - NO GLASSMORPHISM */
+  .card {
+    @apply bg-white border border-gray-200 rounded-lg shadow-sm;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
   }
 
-  .glass-card-strong {
-    @apply bg-white/20 dark:bg-white/10 backdrop-blur-2xl border border-white/20 dark:border-white/10;
-    box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-      0 4px 16px rgba(0, 0, 0, 0.15),
-      0 16px 48px rgba(0, 0, 0, 0.1);
+  .card:hover {
+    @apply border-gray-300 shadow-md;
   }
 
-  .glass-panel {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/50;
-    box-shadow:
-      0 4px 16px rgba(0, 0, 0, 0.1),
-      0 16px 48px rgba(0, 0, 0, 0.05),
-      0 32px 64px rgba(0, 0, 0, 0.03);
+  body.dark .card {
+    @apply bg-navy-800 border-navy-700;
   }
 
-  /* Multi-layer 3D Shadows */
-  .shadow-3d {
-    box-shadow:
-      0 0px 2px rgba(0, 0, 0, 0.1),
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 16px 24px rgba(0, 0, 0, 0.1),
-      0 32px 48px rgba(0, 0, 0, 0.05);
+  body.dark .card:hover {
+    @apply border-navy-600 shadow-lg shadow-black/20;
   }
 
-  .shadow-3d-strong {
-    box-shadow:
-      0 0px 4px rgba(0, 0, 0, 0.15),
-      0 4px 16px rgba(0, 0, 0, 0.15),
-      0 16px 32px rgba(0, 0, 0, 0.12),
-      0 32px 64px rgba(0, 0, 0, 0.1);
+  /* Professional Shadows - Subtle */
+  .shadow-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
   }
 
-  /* Glow Effects */
-  .glow-red {
-    box-shadow:
-      0 0 20px rgba(185, 28, 28, 0.5),
-      0 0 40px rgba(185, 28, 28, 0.3),
-      0 0 60px rgba(185, 28, 28, 0.2);
+  .shadow-card-hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
   }
 
-  .glow-green {
-    box-shadow:
-      0 0 20px rgba(21, 128, 61, 0.5),
-      0 0 40px rgba(21, 128, 61, 0.3),
-      0 0 60px rgba(21, 128, 61, 0.2);
+  body.dark .shadow-card {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
   }
 
-  .glow-pink {
-    box-shadow:
-      0 0 20px rgba(233, 30, 99, 0.5),
-      0 0 40px rgba(233, 30, 99, 0.3),
-      0 0 60px rgba(233, 30, 99, 0.2);
+  body.dark .shadow-card-hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
   }
 
-  .dark .glow-red {
-    box-shadow:
-      0 0 30px rgba(239, 68, 68, 0.6),
-      0 0 60px rgba(239, 68, 68, 0.4),
-      0 0 90px rgba(239, 68, 68, 0.3);
+  /* Status Badges */
+  .badge-success {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 border border-green-200;
   }
 
-  .dark .glow-green {
-    box-shadow:
-      0 0 30px rgba(34, 197, 94, 0.6),
-      0 0 60px rgba(34, 197, 94, 0.4),
-      0 0 90px rgba(34, 197, 94, 0.3);
+  body.dark .badge-success {
+    @apply bg-green-900/30 text-green-400 border-green-800/50;
   }
 
-  .dark .glow-pink {
-    box-shadow:
-      0 0 30px rgba(236, 72, 153, 0.6),
-      0 0 60px rgba(236, 72, 153, 0.4),
-      0 0 90px rgba(236, 72, 153, 0.3);
+  .badge-warning {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200;
   }
 
-  /* Mesh Gradient Background */
-  .mesh-gradient {
-    background:
-      radial-gradient(at 20% 30%, rgba(185, 28, 28, 0.3) 0px, transparent 50%),
-      radial-gradient(at 80% 20%, rgba(233, 30, 99, 0.3) 0px, transparent 50%),
-      radial-gradient(at 40% 80%, rgba(21, 128, 61, 0.3) 0px, transparent 50%),
-      radial-gradient(at 90% 70%, rgba(59, 130, 246, 0.3) 0px, transparent 50%);
-    background-size: 200% 200%;
-    animation: mesh-move 20s ease infinite;
+  body.dark .badge-warning {
+    @apply bg-yellow-900/30 text-yellow-400 border-yellow-800/50;
   }
 
-  @keyframes mesh-move {
-    0%, 100% { background-position: 0% 0%; }
-    25% { background-position: 100% 0%; }
-    50% { background-position: 100% 100%; }
-    75% { background-position: 0% 100%; }
+  .badge-error {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-red-100 text-red-800 border border-red-200;
   }
 
-  .dark .mesh-gradient {
-    background:
-      radial-gradient(at 20% 30%, rgba(239, 68, 68, 0.4) 0px, transparent 50%),
-      radial-gradient(at 80% 20%, rgba(236, 72, 153, 0.4) 0px, transparent 50%),
-      radial-gradient(at 40% 80%, rgba(34, 197, 94, 0.4) 0px, transparent 50%),
-      radial-gradient(at 90% 70%, rgba(96, 165, 250, 0.4) 0px, transparent 50%);
-    background-size: 200% 200%;
+  body.dark .badge-error {
+    @apply bg-red-900/30 text-red-400 border-red-800/50;
   }
 
-  /* Kenyan Tribal Patterns */
-  .tribal-maasai {
-    background-image:
-      repeating-conic-gradient(from 0deg at 50% 50%,
-        transparent 0deg,
-        rgba(255, 255, 255, 0.03) 15deg,
-        transparent 30deg,
-        rgba(255, 255, 255, 0.03) 45deg,
-        transparent 60deg
-      );
-    background-size: 40px 40px;
-    animation: tribal-rotate 60s linear infinite, tribal-pulse 4s ease-in-out infinite;
+  /* Button Styles - Enterprise */
+  .btn-primary {
+    @apply px-4 py-2 bg-gold-600 text-white font-medium rounded-lg shadow-sm;
+    @apply hover:bg-gold-700 active:bg-gold-800;
+    @apply focus:outline-none focus:ring-2 focus:ring-gold-500/50;
+    @apply transition-colors duration-150;
   }
 
-  .tribal-basket {
-    background-image:
-      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px),
-      repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px),
-      repeating-linear-gradient(90deg, transparent, transparent 20px, rgba(255,255,255,0.02) 20px, rgba(255,255,255,0.02) 40px);
-    animation: tribal-pulse 6s ease-in-out infinite;
+  .btn-secondary {
+    @apply px-4 py-2 bg-white text-navy-900 font-medium rounded-lg shadow-sm border border-gray-300;
+    @apply hover:bg-gray-50 active:bg-gray-100;
+    @apply focus:outline-none focus:ring-2 focus:ring-navy-500/50;
+    @apply transition-colors duration-150;
   }
 
-  .tribal-beadwork {
-    background-image:
-      radial-gradient(circle at 10px 10px, rgba(185, 28, 28, 0.1) 2px, transparent 2px),
-      radial-gradient(circle at 30px 30px, rgba(233, 30, 99, 0.1) 2px, transparent 2px),
-      radial-gradient(circle at 50px 50px, rgba(21, 128, 61, 0.1) 2px, transparent 2px);
-    background-size: 60px 60px;
-    animation: tribal-pulse 5s ease-in-out infinite;
+  body.dark .btn-secondary {
+    @apply bg-navy-800 text-white border-navy-700;
+    @apply hover:bg-navy-700 active:bg-navy-600;
   }
 
-  /* Blob Animations */
-  .blob {
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    animation: morph 10s ease-in-out infinite;
-    filter: blur(40px);
+  .btn-danger {
+    @apply px-4 py-2 bg-kenya-red text-white font-medium rounded-lg shadow-sm;
+    @apply hover:bg-red-700 active:bg-red-800;
+    @apply focus:outline-none focus:ring-2 focus:ring-red-500/50;
+    @apply transition-colors duration-150;
   }
 
-  .blob-glow {
-    animation: morph 10s ease-in-out infinite, pulse-glow 2s ease-in-out infinite;
+  /* Input Fields - Professional */
+  .input-field {
+    @apply w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900;
+    @apply focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500;
+    @apply placeholder:text-gray-400;
+    @apply transition-colors duration-150;
   }
 
-  /* Aurora Effect Enhanced */
-  .aurora-effect {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background:
-      radial-gradient(ellipse at top left, rgba(185, 28, 28, 0.15), transparent 50%),
-      radial-gradient(ellipse at top right, rgba(233, 30, 99, 0.15), transparent 50%),
-      radial-gradient(ellipse at bottom, rgba(21, 128, 61, 0.15), transparent 50%);
-    animation: aurora 8s ease-in-out infinite;
-    pointer-events: none;
+  body.dark .input-field {
+    @apply bg-navy-900 border-navy-700 text-white;
+    @apply focus:border-gold-500 placeholder:text-gray-500;
   }
 
-  .dark .aurora-effect {
-    background:
-      radial-gradient(ellipse at top left, rgba(239, 68, 68, 0.2), transparent 50%),
-      radial-gradient(ellipse at top right, rgba(236, 72, 153, 0.2), transparent 50%),
-      radial-gradient(ellipse at bottom, rgba(34, 197, 94, 0.2), transparent 50%);
+  /* Table Styles */
+  .table-row {
+    @apply border-b border-gray-200;
+    transition: background-color 0.15s ease;
   }
 
-  /* Tribal Pattern */
-  .tribal-pattern {
-    background-image:
-      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px),
-      repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px);
+  .table-row:hover {
+    @apply bg-gray-50;
   }
 
-  .dark .tribal-pattern {
-    background-image:
-      repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px),
-      repeating-linear-gradient(-45deg, transparent, transparent 10px, rgba(255,255,255,0.05) 10px, rgba(255,255,255,0.05) 20px);
+  body.dark .table-row {
+    @apply border-navy-700;
   }
 
-  /* Dot Pattern */
-  .dot-pattern {
-    background-image: radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px);
-    background-size: 20px 20px;
+  body.dark .table-row:hover {
+    @apply bg-navy-800/50;
   }
 
-  .dark .dot-pattern {
-    background-image: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  /* Sidebar Styles */
+  .sidebar-item {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-lg text-gray-700 font-medium;
+    @apply hover:bg-gray-100;
+    @apply transition-colors duration-150;
   }
 
-  /* Glassmorphism */
-  .glassmorphism {
-    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 shadow-xl;
+  .sidebar-item.active {
+    @apply bg-navy-900 text-white;
   }
 
-  /* Shimmer Effect */
-  .shimmer-effect {
-    position: relative;
-    overflow: hidden;
+  body.dark .sidebar-item {
+    @apply text-gray-300 hover:bg-navy-800;
   }
 
-  .shimmer-effect::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    animation: shimmer 2s infinite;
+  body.dark .sidebar-item.active {
+    @apply bg-gold-600 text-white;
   }
 
-  .dark .shimmer-effect::before {
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  /* Simple Fade Animation */
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
   }
 
-  /* Gradient Border */
-  .gradient-border {
-    position: relative;
-    background: linear-gradient(white, white) padding-box,
-                linear-gradient(135deg, #B91C1C, #E91E63, #15803D) border-box;
-    border: 2px solid transparent;
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
   }
 
-  .dark .gradient-border {
-    background: linear-gradient(#111827, #111827) padding-box,
-                linear-gradient(135deg, #EF4444, #EC4899, #22C55E) border-box;
+  /* Data Table Header */
+  .table-header {
+    @apply bg-gray-50 text-gray-700 font-semibold text-sm uppercase tracking-wider;
   }
 
-  /* Animated Gradient Border */
-  .gradient-border-animated {
-    position: relative;
-    border: 2px solid transparent;
-    background-clip: padding-box;
+  body.dark .table-header {
+    @apply bg-navy-900/50 text-gray-300;
   }
 
-  .gradient-border-animated::before {
-    content: '';
-    position: absolute;
-    inset: -2px;
-    border-radius: inherit;
-    padding: 2px;
-    background: linear-gradient(135deg, #B91C1C, #E91E63, #15803D, #3B82F6, #B91C1C);
-    background-size: 200% 200%;
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    animation: rotate-gradient 8s linear infinite;
-    pointer-events: none;
+  /* Loading Skeleton */
+  .skeleton {
+    @apply bg-gray-200 rounded animate-pulse;
   }
 
-  /* Neon glow effects for dark mode */
-  .neon-red {
-    box-shadow: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+  body.dark .skeleton {
+    @apply bg-navy-800;
   }
 
-  .neon-green {
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5), 0 0 40px rgba(34, 197, 94, 0.3);
+  /* Divider */
+  .divider {
+    @apply border-t border-gray-200;
   }
 
-  .neon-pink {
-    box-shadow: 0 0 20px rgba(236, 72, 153, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
-  }
-
-  /* Magnetic effect */
-  .magnetic {
-    transition: transform 0.2s ease;
-  }
-
-  .magnetic:hover {
-    transform: scale(1.05);
-  }
-
-  /* Parallax Layers */
-  .parallax-layer {
-    will-change: transform;
-  }
-
-  /* 3D Transform Support */
-  .transform-3d {
-    transform-style: preserve-3d;
-    perspective: 1000px;
-  }
-
-  .backface-hidden {
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
+  body.dark .divider {
+    @apply border-navy-700;
   }
 }
