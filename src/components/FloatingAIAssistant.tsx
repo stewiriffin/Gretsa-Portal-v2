@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { motion, AnimatePresence, type PanInfo } from 'framer-motion';
 import { MessageCircle, X, Send, Sparkles, Mic, Paperclip } from 'lucide-react';
 
 interface Message {

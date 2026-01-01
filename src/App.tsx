@@ -1,171 +1,208 @@
-import { motion } from 'framer-motion';
-import { Toaster, toast } from 'sonner';
-import { Moon, Sun, MessageCircle } from 'lucide-react';
-import { useState } from 'react';
-
-// Components
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { SpotlightSearch, useSpotlightSearch } from './components/SpotlightSearch';
-import { SomaAIAssistant } from './components/SomaAIAssistant';
-import { ChatDrawer } from './components/ChatDrawer';
-import { MobileBottomTabBar } from './components/MobileBottomTabBar';
-import { OfflineBanner } from './components/OfflineBanner';
-import { MagneticCursor } from './components/MagneticCursor';
-import { MilestoneConfetti, useMilestone } from './components/MilestoneConfetti';
-import { BlobAnimations } from './components/BlobAnimations';
-import { TribalOverlays } from './components/TribalOverlays';
-
-// Role-specific Dashboards
-import { StudentDashboard } from './components/student/StudentDashboard';
-import { TeacherDashboard } from './components/teacher/TeacherDashboard';
-import { AdminDashboard } from './components/admin/AdminDashboard';
-
-// Context
+import { Suspense, lazy, useEffect } from 'react';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { useDarkMode } from './contexts/DarkModeContext';
 import { useRole } from './contexts/RoleContext';
+import { useNotifications } from './contexts/NotificationContext';
+import { mockWebSocket } from './services/mockWebSocket';
+import { broadcastChannel } from './services/broadcastChannel';
+import { useUniversityStore } from './store/useUniversityStore';
+import { MainLayout } from './layouts/MainLayout';
+import { LoadingBar } from './components/LoadingBar';
+import { CardSkeleton } from './components/Skeleton';
 
-// Hooks
-import { useOnlineStatus } from './hooks/useOnlineStatus';
+// Code splitting: Lazy load pages
+const StudentDashboard = lazy(() => import('./pages/student/Dashboard').then(m => ({ default: m.StudentDashboard })));
+const StudentCourses = lazy(() => import('./pages/student/Courses').then(m => ({ default: m.StudentCourses })));
+const StudentGrades = lazy(() => import('./pages/student/Grades').then(m => ({ default: m.StudentGrades })));
+const StudentFinancials = lazy(() => import('./pages/student/Financials').then(m => ({ default: m.StudentFinancials })));
+const StudentSchedule = lazy(() => import('./pages/student/Schedule').then(m => ({ default: m.StudentSchedule })));
+const AITutor = lazy(() => import('./pages/AITutor').then(m => ({ default: m.AITutor })));
+
+// Lazy load role-specific dashboards (only load when needed)
+const TeacherDashboard = lazy(() => import('./components/teacher/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="space-y-6">
+    <CardSkeleton />
+    <CardSkeleton />
+    <CardSkeleton />
+  </div>
+);
 
 function App() {
-  const { isDarkMode, toggleDarkMode } = useDarkMode();
-  const { currentRole } = useRole();
-  const { isOpen: isSearchOpen, setIsOpen: setSearchOpen } = useSpotlightSearch();
-  const { milestone, celebrate, close: closeMilestone } = useMilestone();
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const isOnline = useOnlineStatus();
+  const { isDarkMode } = useDarkMode();
+  const { currentRole, setCurrentRole } = useRole();
+  const { addNotification, markAsRead, clearAll } = useNotifications();
+  const { updateBusLocation, updateGrade, updateLocationOccupancy } = useUniversityStore();
 
-  // Trigger milestone celebration (demo)
-  const handleMilestoneDemo = () => {
-    celebrate('Level Up', 'You reached Level 16! Keep up the great work!');
-    toast.success('🎉 New achievement unlocked!', {
-      description: 'You\'ve earned the "Early Bird" badge!',
+  // Initialize WebSocket and Broadcast Channel on mount
+  useEffect(() => {
+    // Connect to mock WebSocket for real-time updates
+    mockWebSocket.connect();
+
+    // Listen for bus location updates
+    const unsubBus = mockWebSocket.on('bus_update', (data) => {
+      if (data.id) {
+        updateBusLocation(data.id, data);
+      }
     });
-  };
 
-  // Render appropriate dashboard based on role
-  const renderDashboard = () => {
-    switch (currentRole) {
-      case 'student':
-        return <StudentDashboard />;
-      case 'teacher':
-        return <TeacherDashboard />;
-      case 'admin':
-        return <AdminDashboard />;
-    }
-  };
+    // Listen for grade updates
+    const unsubGrade = mockWebSocket.on('grade_update', (data) => {
+      if (data.id && data.updates) {
+        updateGrade(data.id, data.updates);
+      }
+    });
+
+    // Listen for occupancy updates
+    const unsubOccupancy = mockWebSocket.on('occupancy_update', (data) => {
+      if (data.locationId !== undefined && data.occupancy !== undefined) {
+        updateLocationOccupancy(data.locationId, data.occupancy);
+      }
+    });
+
+    // Set up Broadcast Channel listeners for cross-tab sync
+    const unsubRoleChange = broadcastChannel.on('ROLE_CHANGE', (message) => {
+      if (message.type === 'ROLE_CHANGE') {
+        setCurrentRole(message.payload.role);
+      }
+    });
+
+    const unsubNotificationAdd = broadcastChannel.on('NOTIFICATION_ADD', (message) => {
+      if (message.type === 'NOTIFICATION_ADD') {
+        addNotification(message.payload);
+      }
+    });
+
+    const unsubNotificationRead = broadcastChannel.on('NOTIFICATION_READ', (message) => {
+      if (message.type === 'NOTIFICATION_READ') {
+        markAsRead(message.payload.id);
+      }
+    });
+
+    const unsubNotificationClearAll = broadcastChannel.on('NOTIFICATION_CLEAR_ALL', () => {
+      clearAll();
+    });
+
+    // Cleanup on unmount
+    return () => {
+      mockWebSocket.disconnect();
+      unsubBus();
+      unsubGrade();
+      unsubOccupancy();
+      unsubRoleChange();
+      unsubNotificationAdd();
+      unsubNotificationRead();
+      unsubNotificationClearAll();
+    };
+  }, [updateBusLocation, updateGrade, updateLocationOccupancy, setCurrentRole, addNotification, markAsRead, clearAll]);
+
+  // Create router with role-based routes
+  const router = createBrowserRouter([
+    {
+      path: '/',
+      element: <MainLayout />,
+      children: [
+        // Student Routes
+        {
+          path: 'student',
+          children: [
+            {
+              path: 'dashboard',
+              element: (
+                <Suspense fallback={<PageLoader />}>
+                  <StudentDashboard />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'courses',
+              element: (
+                <Suspense fallback={<PageLoader />}>
+                  <StudentCourses />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'grades',
+              element: (
+                <Suspense fallback={<PageLoader />}>
+                  <StudentGrades />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'financials',
+              element: (
+                <Suspense fallback={<PageLoader />}>
+                  <StudentFinancials />
+                </Suspense>
+              ),
+            },
+            {
+              path: 'schedule',
+              element: (
+                <Suspense fallback={<PageLoader />}>
+                  <StudentSchedule />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        // Teacher Routes
+        {
+          path: 'teacher/dashboard',
+          element: (
+            <Suspense fallback={<PageLoader />}>
+              <TeacherDashboard />
+            </Suspense>
+          ),
+        },
+        // Admin Routes
+        {
+          path: 'admin/dashboard',
+          element: (
+            <Suspense fallback={<PageLoader />}>
+              <AdminDashboard />
+            </Suspense>
+          ),
+        },
+        // AI Tutor (accessible to all roles)
+        {
+          path: 'ai-tutor',
+          element: (
+            <Suspense fallback={<PageLoader />}>
+              <AITutor />
+            </Suspense>
+          ),
+        },
+        // Default redirect based on role
+        {
+          index: true,
+          element: (
+            <Suspense fallback={<PageLoader />}>
+              {currentRole === 'student' && <StudentDashboard />}
+              {currentRole === 'teacher' && <TeacherDashboard />}
+              {currentRole === 'admin' && <AdminDashboard />}
+            </Suspense>
+          ),
+        },
+      ],
+    },
+  ]);
 
   return (
-    <div className={`flex min-h-screen ${isDarkMode ? 'dark' : ''}`}>
-      {/* Magnetic Cursor */}
-      <MagneticCursor />
-
-      {/* Toast Notifications */}
+    <div className={isDarkMode ? 'dark' : ''}>
       <Toaster
         position="top-right"
         richColors
         theme={isDarkMode ? 'dark' : 'light'}
       />
-
-      {/* Spotlight Search */}
-      <SpotlightSearch isOpen={isSearchOpen} onClose={() => setSearchOpen(false)} />
-
-      {/* Milestone Confetti */}
-      <MilestoneConfetti
-        show={milestone.show}
-        onClose={closeMilestone}
-        milestone={milestone.title}
-        description={milestone.description}
-      />
-
-      {/* Offline Banner */}
-      <OfflineBanner />
-
-      {/* Main Container - Grayscale when offline */}
-      <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-950 relative overflow-hidden w-full transition-all duration-500 ${
-        !isOnline ? 'grayscale opacity-80' : ''
-      }`}>
-        {/* Blob Animations - Background Layer */}
-        <BlobAnimations />
-
-        {/* Tribal Pattern Overlays */}
-        <TribalOverlays />
-
-        {/* Mesh Gradient Background */}
-        <div className="fixed inset-0 mesh-gradient opacity-30 dark:opacity-40 pointer-events-none z-0" />
-
-        {/* Sidebar */}
-        <Sidebar />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col relative z-10">
-          {/* Header */}
-          <Header />
-
-          {/* Dark Mode Toggle - Glassmorphism */}
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 180 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={toggleDarkMode}
-            className="fixed top-24 right-6 z-40 p-4 glass-card-strong rounded-full shadow-3d glow-pink transition-colors"
-          >
-            {isDarkMode ? (
-              <Sun className="text-yellow-500" size={24} />
-            ) : (
-              <Moon className="text-gray-700 dark:text-gray-300" size={24} />
-            )}
-          </motion.button>
-
-          {/* Chat Drawer Toggle Button */}
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsChatOpen(true)}
-            className="fixed top-44 right-6 z-40 p-4 glass-card-strong rounded-full shadow-3d-strong glow-pink transition-colors"
-          >
-            <div className="relative">
-              <MessageCircle className="text-kenya-pink" size={24} />
-              {/* Unread Badge */}
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute -top-1 -right-1 w-5 h-5 bg-linear-to-r from-kenya-red to-kenya-pink rounded-full flex items-center justify-center text-white text-xs font-bold"
-              >
-                3
-              </motion.div>
-            </div>
-          </motion.button>
-
-          {/* Demo Milestone Button - Only for Student */}
-          {currentRole === 'student' && (
-            <motion.button
-              whileHover={{ scale: 1.05, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleMilestoneDemo}
-              className="fixed bottom-24 right-6 z-40 px-4 py-2 glass-card-strong bg-linear-to-r from-kenya-pink to-kenya-red text-white rounded-lg font-semibold shadow-3d glow-pink gradient-border-animated"
-            >
-              🎉 Demo Milestone
-            </motion.button>
-          )}
-
-          {/* Content Area - Role-Based Rendering */}
-          <main className="flex-1 overflow-y-auto">
-            <div className="max-w-7xl mx-auto p-8">
-              {renderDashboard()}
-            </div>
-          </main>
-        </div>
-
-        {/* SOMA AI Assistant */}
-        <SomaAIAssistant />
-
-        {/* Chat Drawer */}
-        <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
-
-        {/* Mobile Bottom Tab Bar - iOS Style */}
-        <MobileBottomTabBar />
-      </div>
+      <LoadingBar />
+      <RouterProvider router={router} />
     </div>
   );
 }

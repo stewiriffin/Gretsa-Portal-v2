@@ -176,8 +176,12 @@ const CourseCard = ({ title, instructor, students, progress, nextClass, color, d
   );
 };
 
-export const CourseCards = () => {
-  const courses = [
+interface CourseCardsProps {
+  searchQuery?: string;
+}
+
+export const CourseCards = ({ searchQuery = '' }: CourseCardsProps) => {
+  const allCourses = [
     {
       title: 'Data Structures & Algorithms',
       instructor: 'Dr. Sarah Wanjiku',
@@ -228,29 +232,47 @@ export const CourseCards = () => {
     },
   ];
 
+  // Filter courses based on search query
+  const courses = allCourses.filter(course =>
+    searchQuery === '' ||
+    course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    course.instructor.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-800">My Courses</h2>
-        <motion.button
-          whileHover={{ scale: 1.05, x: 5 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-4 py-2 text-kenya-red font-semibold hover:bg-kenya-red/5 rounded-lg transition-colors"
-        >
-          View All
-          <ChevronRight size={20} />
-        </motion.button>
-      </div>
+      {!searchQuery && (
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">My Courses</h2>
+          <motion.button
+            whileHover={{ scale: 1.05, x: 5 }}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 px-4 py-2 text-kenya-red font-semibold hover:bg-kenya-red/5 rounded-lg transition-colors"
+          >
+            View All
+            <ChevronRight size={20} />
+          </motion.button>
+        </div>
+      )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {courses.map((course, index) => (
-          <CourseCard
-            key={course.title}
-            {...course}
-            delay={index * 0.1}
-          />
-        ))}
-      </div>
+      {courses.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">
+            No courses found{searchQuery && ` for "${searchQuery}"`}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {courses.map((course, index) => (
+            <CourseCard
+              key={course.title}
+              {...course}
+              delay={index * 0.1}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

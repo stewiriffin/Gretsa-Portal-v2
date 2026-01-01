@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode, useCallback } from 'react';
+import { syncNotificationAdd, syncNotificationRead, syncNotificationClearAll } from '../services/broadcastChannel';
 
 export interface Notification {
   id: string;
@@ -100,12 +101,16 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       read: false,
     };
     setNotifications(prev => [newNotification, ...prev]);
+    // Sync to other tabs
+    syncNotificationAdd(newNotification);
   }, []);
 
   const markAsRead = useCallback((id: string) => {
     setNotifications(prev =>
       prev.map(n => (n.id === id ? { ...n, read: true } : n))
     );
+    // Sync to other tabs
+    syncNotificationRead(id);
   }, []);
 
   const markAllAsRead = useCallback(() => {
@@ -118,6 +123,8 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
 
   const clearAll = useCallback(() => {
     setNotifications([]);
+    // Sync to other tabs
+    syncNotificationClearAll();
   }, []);
 
   return (

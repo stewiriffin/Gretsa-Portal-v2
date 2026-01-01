@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserRole, useRole } from '../contexts/RoleContext';
+import type { UserRole } from '../contexts/RoleContext';
+import { useRole } from '../contexts/RoleContext';
 import { GraduationCap, BookOpen, Shield, Check } from 'lucide-react';
 import { useState } from 'react';
 

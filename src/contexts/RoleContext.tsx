@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
+import { syncRoleChange } from '../services/broadcastChannel';
 
 export type UserRole = 'student' | 'teacher' | 'admin';
 
@@ -37,6 +38,8 @@ export const RoleProvider = ({ children }: RoleProviderProps) => {
 
   const setCurrentRole = (role: UserRole) => {
     setCurrentRoleState(role);
+    // Sync role change to other tabs
+    syncRoleChange(role);
   };
 
   // Mock user data based on role

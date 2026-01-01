@@ -5,15 +5,18 @@ import App from './App.tsx'
 import { DarkModeProvider } from './contexts/DarkModeContext'
 import { RoleProvider } from './contexts/RoleContext'
 import { NotificationProvider } from './contexts/NotificationContext'
+import { QueryProvider } from './providers/QueryProvider'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <DarkModeProvider>
-      <RoleProvider>
-        <NotificationProvider>
-          <App />
-        </NotificationProvider>
-      </RoleProvider>
-    </DarkModeProvider>
+    <QueryProvider>
+      <DarkModeProvider>
+        <RoleProvider>
+          <NotificationProvider>
+            <App />
+          </NotificationProvider>
+        </RoleProvider>
+      </DarkModeProvider>
+    </QueryProvider>
   </StrictMode>,
 )
