@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export type UserRole = 'student' | 'teacher' | 'admin';
 
@@ -24,7 +24,20 @@ interface RoleProviderProps {
 }
 
 export const RoleProvider = ({ children }: RoleProviderProps) => {
-  const [currentRole, setCurrentRole] = useState<UserRole>('student');
+  // Initialize from localStorage if available
+  const [currentRole, setCurrentRoleState] = useState<UserRole>(() => {
+    const saved = localStorage.getItem('currentRole');
+    return (saved as UserRole) || 'student';
+  });
+
+  // Persist to localStorage whenever role changes
+  useEffect(() => {
+    localStorage.setItem('currentRole', currentRole);
+  }, [currentRole]);
+
+  const setCurrentRole = (role: UserRole) => {
+    setCurrentRoleState(role);
+  };
 
   // Mock user data based on role
   const getUserData = (role: UserRole) => {

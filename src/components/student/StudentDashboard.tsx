@@ -13,6 +13,9 @@ import { EnhancedCharts } from '../EnhancedCharts';
 import { StreakTracker } from '../StreakTracker';
 import { MPesaPayment } from '../MPesaPayment';
 import { ResourceGallery } from '../ResourceGallery';
+import { EventsCalendar } from '../EventsCalendar';
+import { CampusNewsFeed } from '../CampusNewsFeed';
+import { AchievementCards } from '../AchievementCards';
 
 export const StudentDashboard = () => {
   const courses = [
@@ -138,7 +141,7 @@ export const StudentDashboard = () => {
               </div>
             </motion.div>
 
-            {/* Right Sidebar: Gamification + Live Classes + Streaks */}
+            {/* Right Sidebar: Gamification + Achievements + Live Classes + Streaks */}
             <div className="space-y-6">
               {/* Gamification Panel */}
               <motion.div
@@ -147,6 +150,15 @@ export const StudentDashboard = () => {
                 transition={{ delay: 0.8 }}
               >
                 <GamificationPanel />
+              </motion.div>
+
+              {/* Achievement Cards */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.82 }}
+              >
+                <AchievementCards />
               </motion.div>
 
               {/* Streak Tracker */}
@@ -220,6 +232,32 @@ export const StudentDashboard = () => {
             transition={{ delay: 1.3 }}
           >
             <AssignmentKanban />
+          </motion.div>
+        </ParallaxContainer>
+      </div>
+
+      {/* Events Calendar Section */}
+      <div id="events">
+        <ParallaxContainer speed={0.68}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.35 }}
+          >
+            <EventsCalendar />
+          </motion.div>
+        </ParallaxContainer>
+      </div>
+
+      {/* Campus News Feed Section */}
+      <div id="social">
+        <ParallaxContainer speed={0.69}>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.38 }}
+          >
+            <CampusNewsFeed />
           </motion.div>
         </ParallaxContainer>
       </div>

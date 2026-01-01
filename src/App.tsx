@@ -9,6 +9,8 @@ import { Header } from './components/Header';
 import { SpotlightSearch, useSpotlightSearch } from './components/SpotlightSearch';
 import { SomaAIAssistant } from './components/SomaAIAssistant';
 import { ChatDrawer } from './components/ChatDrawer';
+import { MobileBottomTabBar } from './components/MobileBottomTabBar';
+import { OfflineBanner } from './components/OfflineBanner';
 import { MagneticCursor } from './components/MagneticCursor';
 import { MilestoneConfetti, useMilestone } from './components/MilestoneConfetti';
 import { BlobAnimations } from './components/BlobAnimations';
@@ -23,12 +25,16 @@ import { AdminDashboard } from './components/admin/AdminDashboard';
 import { useDarkMode } from './contexts/DarkModeContext';
 import { useRole } from './contexts/RoleContext';
 
+// Hooks
+import { useOnlineStatus } from './hooks/useOnlineStatus';
+
 function App() {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
   const { currentRole } = useRole();
   const { isOpen: isSearchOpen, setIsOpen: setSearchOpen } = useSpotlightSearch();
   const { milestone, celebrate, close: closeMilestone } = useMilestone();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const isOnline = useOnlineStatus();
 
   // Trigger milestone celebration (demo)
   const handleMilestoneDemo = () => {
@@ -73,8 +79,13 @@ function App() {
         description={milestone.description}
       />
 
-      {/* Main Container */}
-      <div className="flex min-h-screen bg-gray-50 dark:bg-gray-950 relative overflow-hidden w-full transition-colors duration-300">
+      {/* Offline Banner */}
+      <OfflineBanner />
+
+      {/* Main Container - Grayscale when offline */}
+      <div className={`flex min-h-screen bg-gray-50 dark:bg-gray-950 relative overflow-hidden w-full transition-all duration-500 ${
+        !isOnline ? 'grayscale opacity-80' : ''
+      }`}>
         {/* Blob Animations - Background Layer */}
         <BlobAnimations />
 
@@ -132,7 +143,7 @@ function App() {
               whileHover={{ scale: 1.05, y: -2 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleMilestoneDemo}
-              className="fixed bottom-24 right-6 z-40 px-4 py-2 glass-card-strong bg-gradient-to-r from-kenya-pink to-kenya-red text-white rounded-lg font-semibold shadow-3d glow-pink gradient-border-animated"
+              className="fixed bottom-24 right-6 z-40 px-4 py-2 glass-card-strong bg-linear-to-r from-kenya-pink to-kenya-red text-white rounded-lg font-semibold shadow-3d glow-pink gradient-border-animated"
             >
               🎉 Demo Milestone
             </motion.button>
@@ -151,6 +162,9 @@ function App() {
 
         {/* Chat Drawer */}
         <ChatDrawer isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
+        {/* Mobile Bottom Tab Bar - iOS Style */}
+        <MobileBottomTabBar />
       </div>
     </div>
   );

@@ -1,13 +1,15 @@
 import { motion } from 'framer-motion';
-import { Search, Bell, Mail, User } from 'lucide-react';
+import { Search, Bell, Mail, User, AlertTriangle, Clock } from 'lucide-react';
 import { useRole } from '../contexts/RoleContext';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useExamCountdown } from '../hooks/useExamCountdown';
 import { RoleSwitcher } from './RoleSwitcher';
 import { SwahiliGreeting } from './SwahiliGreeting';
 
 export const Header = () => {
   const { currentRole, userName } = useRole();
   const { unreadCount } = useNotifications();
+  const { isExamWeek, upcomingExam, countdown } = useExamCountdown();
 
   // Role-specific search placeholders
   const searchPlaceholders = {
@@ -28,13 +30,71 @@ export const Header = () => {
     }
   };
 
+  // Format countdown numbers with leading zero
+  const formatCountdown = (num: number) => num.toString().padStart(2, '0');
+
   return (
     <motion.header
       initial={{ y: -100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: 'spring', stiffness: 100, damping: 20 }}
-      className="glassmorphism sticky top-0 z-50 px-8 py-4"
+      className={`sticky top-0 z-50 px-8 py-4 transition-all duration-500 ${
+        isExamWeek && currentRole === 'student'
+          ? 'bg-linear-to-r from-purple-900 via-indigo-900 to-blue-900 backdrop-blur-xl border-b-2 border-yellow-400'
+          : 'glassmorphism'
+      }`}
     >
+      {/* Exam Week Banner */}
+      {isExamWeek && currentRole === 'student' && upcomingExam && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-3 px-4 py-2 bg-yellow-400/20 border border-yellow-400/50 rounded-xl"
+        >
+          <div className="flex items-center gap-3">
+            <motion.div
+              animate={{ rotate: [0, 10, -10, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+            >
+              <AlertTriangle className="text-yellow-400" size={20} />
+            </motion.div>
+            <div>
+              <p className="text-sm font-bold text-white flex items-center gap-2">
+                🎯 Focus Mode: {upcomingExam.course} {upcomingExam.type.toUpperCase()}
+              </p>
+              <p className="text-xs text-yellow-200">
+                {upcomingExam.date.toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'short',
+                  day: 'numeric',
+                })} • {upcomingExam.time} • {upcomingExam.location}
+              </p>
+            </div>
+          </div>
+
+          {/* Countdown Timer */}
+          <div className="flex items-center gap-2">
+            <Clock className="text-yellow-400" size={18} />
+            <div className="flex items-center gap-1 font-mono font-bold text-white">
+              <div className="flex flex-col items-center">
+                <span className="text-2xl text-yellow-400">{formatCountdown(countdown.days)}</span>
+                <span className="text-[10px] text-yellow-200">DAYS</span>
+              </div>
+              <span className="text-xl text-yellow-400 mx-1">:</span>
+              <div className="flex flex-col items-center">
+                <span className="text-2xl text-yellow-400">{formatCountdown(countdown.hours)}</span>
+                <span className="text-[10px] text-yellow-200">HRS</span>
+              </div>
+              <span className="text-xl text-yellow-400 mx-1">:</span>
+              <div className="flex flex-col items-center">
+                <span className="text-2xl text-yellow-400">{formatCountdown(countdown.minutes)}</span>
+                <span className="text-[10px] text-yellow-200">MIN</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <div className="flex items-center justify-between">
         {/* Role Switcher */}
         <div className="mr-6">

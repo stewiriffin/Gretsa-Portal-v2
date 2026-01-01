@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 export interface Notification {
   id: string;
@@ -34,33 +34,61 @@ interface NotificationProviderProps {
   children: ReactNode;
 }
 
+const defaultNotifications: Notification[] = [
+  {
+    id: '1',
+    type: 'info',
+    title: 'New Assignment Posted',
+    message: 'Dr. Wanjiku posted a new assignment in Data Structures',
+    timestamp: new Date(Date.now() - 1000 * 60 * 30),
+    read: false,
+  },
+  {
+    id: '2',
+    type: 'success',
+    title: 'Grade Released',
+    message: 'Your grade for Web Development Quiz 2 is now available',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
+    read: false,
+  },
+  {
+    id: '3',
+    type: 'warning',
+    title: 'Fee Payment Reminder',
+    message: 'Your semester fees are due in 3 days',
+    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
+    read: true,
+  },
+];
+
 export const NotificationProvider = ({ children }: NotificationProviderProps) => {
-  const [notifications, setNotifications] = useState<Notification[]>([
-    {
-      id: '1',
-      type: 'info',
-      title: 'New Assignment Posted',
-      message: 'Dr. Wanjiku posted a new assignment in Data Structures',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30),
-      read: false,
-    },
-    {
-      id: '2',
-      type: 'success',
-      title: 'Grade Released',
-      message: 'Your grade for Web Development Quiz 2 is now available',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2),
-      read: false,
-    },
-    {
-      id: '3',
-      type: 'warning',
-      title: 'Fee Payment Reminder',
-      message: 'Your semester fees are due in 3 days',
-      timestamp: new Date(Date.now() - 1000 * 60 * 60 * 5),
-      read: true,
-    },
-  ]);
+  // Initialize from localStorage if available
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    try {
+      const saved = localStorage.getItem('notifications');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Convert timestamp strings back to Date objects
+        return parsed.map((n: any) => ({
+          ...n,
+          timestamp: new Date(n.timestamp),
+        }));
+      }
+      return defaultNotifications;
+    } catch (error) {
+      console.warn('Error loading notifications from localStorage:', error);
+      return defaultNotifications;
+    }
+  });
+
+  // Persist to localStorage whenever notifications change
+  useEffect(() => {
+    try {
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+    } catch (error) {
+      console.warn('Error saving notifications to localStorage:', error);
+    }
+  }, [notifications]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
